@@ -1,0 +1,16 @@
+app:
+  replicaCount: 3
+  image:
+    repository: "chucthien03/resource-monitoring-app"
+    tag: "v2"
+    pullPolicy: "IfNotPresent"
+  containerPort: 5000
+  service:
+    port: 80
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"

@@ -1,0 +1,27 @@
+# Dùng base image nhẹ hơn
+FROM python:3.9-slim
+
+# Thiết lập thư mục làm việc
+WORKDIR /app
+
+# Cài đặt dependencies trước để tận dụng cache
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Copy source code vào image
+COPY . .
+
+# Tạo user không chạy dưới quyền root (bảo mật hơn)
+RUN adduser --system appuser
+USER appuser
+
+# Cấu hình môi trường
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_APP=app.py  
+
+
+# Mở cổng 5000 cho Flask
+EXPOSE 5000
+
+# Chạy Flask
+ENTRYPOINT ["flask", "run"]

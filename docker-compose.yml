@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    networks:
+      - devops-net
+
+  jenkins-agent:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile.agent
+    container_name: jenkins-agent
+    user: root
+    network_mode: host
+    environment:
+      - JENKINS_URL=http://127.0.0.1:8080
+      - JENKINS_AGENT_NAME=agent-01
+      - JENKINS_SECRET=${JENKINS_AGENT_SECRET}
+      - JENKINS_WEB_SOCKET=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./jenkins/kubeconfig:/root/.kube/config:ro
+    depends_on:
+      - jenkins
+
+  demo-app:
+    build: ./app
+    container_name: demo-app
+    ports:
+      - "5000:5000"
+    networks:
+      - devops-net
+
+volumes:
+  jenkins_home:
+
+networks:
+  devops-net:
+    name: devops-net
+    driver: bridge

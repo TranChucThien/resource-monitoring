@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "resource-monitoring-app.name" . }}-deployment
+  labels:
+    {{- include "resource-monitoring-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "resource-monitoring-app.name" . }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: {{ include "resource-monitoring-app.name" . }}
+        {{- include "resource-monitoring-app.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "resource-monitoring-app.name" . }}
+          image: {{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}
+          ports:
+            - containerPort: {{ .Values.app.containerPort }}
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          env:
+            - name: FLASK_APP
+              value: "app.py"
+            - name: FLASK_RUN_HOST
+              value: "0.0.0.0"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.app.containerPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.app.containerPort }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: {{ .Values.app.resources.requests.cpu }}
+              memory: {{ .Values.app.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.app.resources.limits.cpu }}
+              memory: {{ .Values.app.resources.limits.memory }}
