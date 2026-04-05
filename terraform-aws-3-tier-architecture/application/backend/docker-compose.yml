@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+
+  backend:
+    image: chucthien03/three-tier-backend:latest
+    container_name: fastapi_backend
+    restart: always
+    ports:
+      - "8000:8000"
+
+    environment: 
+      MONGO_USER: root
+      MONGO_PASS: example # NOTE: This password is only for testing/learning purposes, do not use in production
+      MONGO_HOST: 18.222.113.224
+      MONGO_PORT: 27017
+      MONGO_DB: crud_demo
